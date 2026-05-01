@@ -46,12 +46,15 @@ const loadingTxt = document.getElementById('loading-text');
 const statusDot = document.getElementById('status-dot');
 const statusTxt = document.getElementById('status-text');
 const micBtn = document.getElementById('mic-btn');
+const cameraBtn = document.getElementById('camera-btn');
 const handHint = document.getElementById('hand-hint');
 
 // ── Runtime state ──────────────────────────────────────────────
 let latestHands = [];         // [{ lm: Landmark[21], handedness: 'Left'|'Right'|string }, ...]
 let modelReady = false;  // true after first MediaPipe result
 let frameRunning = false;  // prevents queuing concurrent sends
+let currentFacingMode = 'user';  // 'user' for front, 'environment' for back
+let isMirrored = true;          // true for front camera (mirrored), false for back
 
 // Per-hand visual smoothing + motion info (keyed by handedness label when available)
 const handViz = new Map(); // key -> { boxX, boxY, lastPalmX, lastPalmT }
@@ -111,13 +114,13 @@ function onHandResults(results) {
 // ══════════════════════════════════════════════════════════════
 //  2. CAMERA SETUP  (getUserMedia, no Camera-utils dependency)
 // ══════════════════════════════════════════════════════════════
-async function startCamera() {
+async function startCamera(facingMode = 'user') {
   setLoadingText('Accessing camera…');
 
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
       video: {
-        facingMode: { ideal: 'user' },  // prefer front camera
+        facingMode: { ideal: facingMode },
         width: { ideal: 640 },
         height: { ideal: 480 },
       },
@@ -125,6 +128,10 @@ async function startCamera() {
     });
 
     videoEl.srcObject = stream;
+
+    // Set mirroring based on camera
+    isMirrored = (facingMode === 'user');
+    videoEl.style.transform = isMirrored ? 'scaleX(-1)' : 'none';
 
     // Wait until video metadata is ready, then start playing
     await new Promise((resolve, reject) => {
@@ -138,6 +145,22 @@ async function startCamera() {
     console.error('Camera error:', err);
     setLoadingText('⚠ Camera denied. Please allow camera access and reload.');
   }
+}
+
+// Switch between front and back camera
+async function switchCamera() {
+  // Stop current stream
+  if (videoEl.srcObject) {
+    const stream = videoEl.srcObject;
+    stream.getTracks().forEach(track => track.stop());
+    videoEl.srcObject = null;
+  }
+
+  // Toggle facing mode
+  currentFacingMode = (currentFacingMode === 'user') ? 'environment' : 'user';
+
+  // Restart camera with new mode
+  await startCamera(currentFacingMode);
 }
 
 // Continuously sends video frames to MediaPipe (skips if still processing)
@@ -299,8 +322,8 @@ function toCanvas(lm) {
   const ox = (cw - vw * scale) / 2;  // horizontal render offset
   const oy = (ch - vh * scale) / 2;  // vertical render offset
 
-  // Mirror x: landmark at normalised 0 (raw-left) becomes the right edge
-  const x = ox + vw * scale * (1 - lm.x);
+  // Mirror x if front camera: landmark at normalised 0 (raw-left) becomes the right edge
+  const x = ox + vw * scale * (isMirrored ? (1 - lm.x) : lm.x);
   const y = oy + lm.y * vh * scale;
 
   return { x, y };
@@ -785,6 +808,16 @@ micBtn.addEventListener('click', () => {
   }
 });
 
+// Camera button switches between front and back camera
+cameraBtn.addEventListener('click', async () => {
+  try {
+    await switchCamera();
+  } catch (e) {
+    console.error('Camera switch error:', e);
+    showSpeechMessage('Could not switch camera. Check permissions.', 2600);
+  }
+});
+
 // ══════════════════════════════════════════════════════════════
 //  8. STATUS / LOADING HELPERS
 // ══════════════════════════════════════════════════════════════
@@ -834,7 +867,7 @@ function init() {
 
   initHands();    // configure MediaPipe
   initSpeech();   // configure Web Speech API
-  startCamera();  // request getUserMedia + begin frame loop
+  startCamera(currentFacingMode);  // request getUserMedia + begin frame loop
 
   // Start rendering immediately so speech overlays appear even while the hand
   // model is still loading.
