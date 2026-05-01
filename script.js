@@ -655,6 +655,7 @@ function drawLoop(timestamp) {
 //  7. SPEECH RECOGNITION
 // ══════════════════════════════════════════════════════════════
 let recognition = null;
+let lastSpeechError = null;
 
 function initSpeech() {
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -673,6 +674,7 @@ function initSpeech() {
   recognition.lang = 'en-US';
 
   recognition.onstart = () => {
+    lastSpeechError = null;
     isListening = true;
     micBtn.classList.add('listening');
     setStatus('LISTENING', 'listening');
@@ -682,7 +684,7 @@ function initSpeech() {
   recognition.onend = () => {
     isListening = false;
     micBtn.classList.remove('listening');
-    if (wantListening) {
+    if (wantListening && lastSpeechError !== 'network') {
       // Some Chrome builds stop recognition after a pause. If the user still
       // has the mic toggle ON, immediately restart to keep subtitles live.
       setTimeout(() => {
@@ -724,13 +726,16 @@ function initSpeech() {
   recognition.onerror = (e) => {
     // 'no-speech' is normal; others are worth logging
     if (e.error !== 'no-speech') console.warn('Speech error:', e.error);
+    lastSpeechError = e.error;
     isListening = false;
     micBtn.classList.remove('listening');
     setStatus('LIVE', 'live');
     if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+      wantListening = false;
       showSpeechMessage('Microphone blocked. Allow mic permission, then try again.', 3000);
     } else if (e.error === 'network') {
-      showSpeechMessage('Speech service network error. Check internet + try again.', 2800);
+      wantListening = false;
+      showSpeechMessage('Speech service network error. Check internet + try again.', 3200);
     } else if (e.error !== 'no-speech') {
       showSpeechMessage(`Speech error: ${e.error}`, 2200);
     }
@@ -754,6 +759,10 @@ function startSpeechFade() {
 // Mic button toggles recognition on/off
 micBtn.addEventListener('click', () => {
   if (!recognition) return;
+  if (!navigator.onLine) {
+    showSpeechMessage('No network connection detected. Speech recognition needs internet.', 3200);
+    return;
+  }
   if (!window.isSecureContext) {
     showSpeechMessage('Speech needs HTTPS (or localhost). Open via http://localhost:8080.', 3200);
     return;
