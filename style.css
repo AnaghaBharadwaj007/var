@@ -4,18 +4,21 @@
    ====================================================== */
 
 /* ── Reset ── */
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
-html, body {
+html,
+body {
   width: 100%;
   height: 100%;
   overflow: hidden;
   background: #000;
-  font-family: 'Courier New', Courier, monospace;
+  font-family: "Courier New", Courier, monospace;
   color: #fff;
   /* prevent double-tap zoom & long-press menus on mobile */
   touch-action: manipulation;
@@ -55,7 +58,11 @@ html, body {
   animation: spin 0.85s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 #loading-text {
   font-size: 11px;
@@ -74,14 +81,13 @@ html, body {
   inset: 0;
 }
 
-/* Mirrored so it behaves like a selfie/front camera */
+/* Video mirroring is set dynamically based on camera (front/back) */
 #video {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transform: scaleX(-1);
 }
 
 /* Canvas sits on top; drawings account for the mirror */
@@ -106,9 +112,11 @@ html, body {
   justify-content: space-between;
   /* respect iPhone notch */
   padding: max(14px, env(safe-area-inset-top)) 20px 14px;
-  background: linear-gradient(to bottom,
+  background: linear-gradient(
+    to bottom,
     rgba(0, 0, 0, 0.72) 0%,
-    transparent 100%);
+    transparent 100%
+  );
   pointer-events: none;
 }
 
@@ -129,12 +137,23 @@ html, body {
   transition: background 0.3s;
 }
 
-.pulse-dot.live      { background: #00d4ff; animation: blink 1.6s ease-in-out infinite; }
-.pulse-dot.listening { background: #ff006e; animation: blink 0.65s ease-in-out infinite; }
+.pulse-dot.live {
+  background: #00d4ff;
+  animation: blink 1.6s ease-in-out infinite;
+}
+.pulse-dot.listening {
+  background: #ff006e;
+  animation: blink 0.65s ease-in-out infinite;
+}
 
 @keyframes blink {
-  0%, 100% { opacity: 1; }
-  50%       { opacity: 0.25; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.25;
+  }
 }
 
 #status-text {
@@ -167,9 +186,7 @@ html, body {
   flex-wrap: wrap;
   gap: 8px;
   padding: 12px 20px max(12px, env(safe-area-inset-bottom));
-  background: linear-gradient(to top,
-    rgba(0, 0, 0, 0.65) 0%,
-    transparent 100%);
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.65) 0%, transparent 100%);
   font-size: 10px;
   letter-spacing: 1px;
   color: rgba(255, 255, 255, 0.28);
@@ -202,7 +219,11 @@ html, body {
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   box-shadow: 0 4px 28px rgba(0, 0, 0, 0.55);
-  transition: border-color 0.2s, color 0.2s, box-shadow 0.2s, transform 0.1s;
+  transition:
+    border-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s,
+    transform 0.1s;
 }
 
 #mic-btn:hover,
@@ -210,23 +231,34 @@ html, body {
   outline: none;
   border-color: #00d4ff;
   color: #00d4ff;
-  box-shadow: 0 0 22px rgba(0, 212, 255, 0.28), 0 4px 28px rgba(0, 0, 0, 0.55);
+  box-shadow:
+    0 0 22px rgba(0, 212, 255, 0.28),
+    0 4px 28px rgba(0, 0, 0, 0.55);
 }
 
-#mic-btn:active { transform: scale(0.91); }
+#mic-btn:active {
+  transform: scale(0.91);
+}
 
 /* Pulsing red state while recording */
 #mic-btn.listening {
   border-color: #ff006e;
   color: #ff006e;
   background: rgba(255, 0, 110, 0.16);
-  box-shadow: 0 0 32px rgba(255, 0, 110, 0.4), 0 4px 28px rgba(0, 0, 0, 0.55);
+  box-shadow:
+    0 0 32px rgba(255, 0, 110, 0.4),
+    0 4px 28px rgba(0, 0, 0, 0.55);
   animation: mic-pulse 1s ease-in-out infinite;
 }
 
 @keyframes mic-pulse {
-  0%, 100% { transform: scale(1); }
-  50%       { transform: scale(1.1); }
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
 }
 
 #mic-btn svg {
@@ -236,8 +268,53 @@ html, body {
 }
 
 /* ──────────────────────────────────────────────────────
-   "POINT YOUR HAND" HINT (centre of screen)
+   CAMERA SWITCH BUTTON
 ────────────────────────────────────────────────────── */
+#camera-btn {
+  position: fixed;
+  bottom: 120px;
+  right: 24px;
+  z-index: 50;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  background: rgba(8, 8, 8, 0.72);
+  color: rgba(255, 255, 255, 0.75);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* glass-morphism */
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  box-shadow: 0 4px 28px rgba(0, 0, 0, 0.55);
+  transition:
+    border-color 0.2s,
+    color 0.2s,
+    box-shadow 0.2s,
+    transform 0.1s;
+}
+
+#camera-btn:hover,
+#camera-btn:focus-visible {
+  outline: none;
+  border-color: #00d4ff;
+  color: #00d4ff;
+  box-shadow:
+    0 0 22px rgba(0, 212, 255, 0.28),
+    0 4px 28px rgba(0, 0, 0, 0.55);
+}
+
+#camera-btn:active {
+  transform: scale(0.91);
+}
+
+#camera-btn svg {
+  width: 22px;
+  height: 22px;
+  pointer-events: none;
+}
 #hand-hint {
   position: fixed;
   top: 50%;
@@ -253,13 +330,31 @@ html, body {
   white-space: nowrap;
 }
 
-#hand-hint.hidden { opacity: 0; }
+#hand-hint.hidden {
+  opacity: 0;
+}
 
 /* ──────────────────────────────────────────────────────
    RESPONSIVE TWEAKS (very small screens)
 ────────────────────────────────────────────────────── */
 @media (max-width: 380px) {
-  #gesture-guide { font-size: 9px; gap: 5px; }
-  #mic-btn       { width: 50px; height: 50px; right: 16px; bottom: 54px; }
-  #app-name      { display: none; }
+  #gesture-guide {
+    font-size: 9px;
+    gap: 5px;
+  }
+  #mic-btn {
+    width: 50px;
+    height: 50px;
+    right: 16px;
+    bottom: 54px;
+  }
+  #camera-btn {
+    width: 50px;
+    height: 50px;
+    right: 16px;
+    bottom: 116px;
+  }
+  #app-name {
+    display: none;
+  }
 }
