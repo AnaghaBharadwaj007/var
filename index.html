@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0,
+        maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>AR Hand Vision</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ── Loading screen (shown until model is ready) ── -->
+  <div id="loading">
+    <div class="spinner"></div>
+    <p id="loading-text">Initializing AR camera…</p>
+  </div>
+
+  <!-- ── AR viewport: live video + canvas overlay ── -->
+  <div id="viewport">
+    <video id="video" autoplay muted playsinline></video>
+    <canvas id="canvas"></canvas>
+  </div>
+
+  <!-- ── Top HUD bar ── -->
+  <div id="hud-top">
+    <div id="live-indicator">
+      <span class="pulse-dot" id="status-dot"></span>
+      <span id="status-text">LOADING</span>
+    </div>
+    <div id="app-name">AR HAND VISION</div>
+  </div>
+
+  <!-- ── Bottom gesture reference guide ── -->
+  <div id="gesture-guide">
+    <span>Fist&nbsp;=&nbsp;Hello</span>
+    <span class="sep">·</span>
+    <span>Index&nbsp;=&nbsp;Point</span>
+    <span class="sep">·</span>
+    <span>2 fingers&nbsp;=&nbsp;Peace</span>
+    <span class="sep">·</span>
+    <span>Open palm&nbsp;=&nbsp;Stop / Wave</span>
+    <span class="sep">·</span>
+    <span>Thumb&nbsp;=&nbsp;Thumbs Up</span>
+    <span class="sep">·</span>
+    <span>Index+Pinky&nbsp;=&nbsp;Awesome</span>
+    <span class="sep">·</span>
+    <span>ILY&nbsp;=&nbsp;Take Care</span>
+    <span class="sep">·</span>
+    <span>OK&nbsp;=&nbsp;OK</span>
+    <span class="sep">·</span>
+    <span>Shaka&nbsp;=&nbsp;Call Me</span>
+  </div>
+
+  <!-- ── Microphone toggle button ── -->
+  <button id="mic-btn" title="Toggle speech recognition">
+    <!-- Feather-style mic icon -->
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+         stroke="currentColor" stroke-width="2"
+         stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+      <line x1="12" y1="19" x2="12" y2="23"/>
+      <line x1="8"  y1="23" x2="16" y2="23"/>
+    </svg>
+  </button>
+
+  <!-- ── Centre hint when no hand is visible ── -->
+  <div id="hand-hint">Point your hand at the camera</div>
+
+  <!-- MediaPipe Hands (only hands.js needed; we draw manually) -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"
+          crossorigin="anonymous"></script>
+
+  <script src="script.js"></script>
+</body>
+</html>
